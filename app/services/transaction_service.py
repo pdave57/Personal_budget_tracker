@@ -69,3 +69,4 @@ class TransactionService:
 
     def get_total_by_category(self, category_id: int, start_date: date, end_date: date) -> Decimal:
         return self.transaction_repo.get_total_by_category_and_date_range(category_id, start_date, end_date)
+

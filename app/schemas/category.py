@@ -21,3 +21,4 @@ class CategoryResponse(CategoryBase):
 
     class Config:
         from_attributes = True
+

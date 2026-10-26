@@ -7,6 +7,7 @@ from app.routers import (
     budgets_router,
     reports_router,
     auth_router,
+    ml_router,
 )
 
 settings = get_settings()
@@ -24,11 +25,12 @@ def on_startup():
     init_db()
 
 
-app.include_router(auth_router)
-app.include_router(categories_router)
-app.include_router(transactions_router)
-app.include_router(budgets_router)
-app.include_router(reports_router)
+app.include_router(auth_router, prefix="/api/v1")
+app.include_router(categories_router, prefix="/api/v1")
+app.include_router(transactions_router, prefix="/api/v1")
+app.include_router(budgets_router, prefix="/api/v1")
+app.include_router(reports_router, prefix="/api/v1")
+app.include_router(ml_router, prefix="/api/v1")
 
 
 @app.get("/")

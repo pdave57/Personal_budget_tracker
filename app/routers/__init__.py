@@ -3,6 +3,7 @@ from app.routers.transactions import router as transactions_router
 from app.routers.budgets import router as budgets_router
 from app.routers.reports import router as reports_router
 from app.routers.auth import router as auth_router
+from app.routers.ml import router as ml_router
 
 __all__ = [
     "categories_router",
@@ -10,4 +11,5 @@ __all__ = [
     "budgets_router",
     "reports_router",
     "auth_router",
+    "ml_router",
 ]

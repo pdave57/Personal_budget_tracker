@@ -10,3 +10,4 @@ This directory contains the core modules for the Personal Budget Tracker applica
 - `dependencies.py`: Authentication and common route dependencies
 - `database.py`: Database engine and session configuration
 - `config.py`: Pydantic settings configuration
+

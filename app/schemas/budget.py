@@ -26,3 +26,4 @@ class BudgetResponse(BudgetBase):
 
     class Config:
         from_attributes = True
+

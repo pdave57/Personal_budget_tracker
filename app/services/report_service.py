@@ -178,3 +178,4 @@ class ReportService:
             {"category": name, "amount": amount}
             for name, amount in results
         ]
+
