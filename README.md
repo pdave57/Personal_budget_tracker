@@ -202,14 +202,16 @@ personal_budget_tracker/
 | PUT    | `/api/v1/budgets/{id}`                                | Update a budget                |
 | DELETE | `/api/v1/budgets/{id}`                                | Delete a budget                |
 
-### Reports
-| Method | Endpoint                               | Description                         |
-|--------|----------------------------------------|-------------------------------------|
-| GET    | `/api/v1/reports/summary`              | Financial summary for date range    |
-| GET    | `/api/v1/reports/income-by-category`   | Income breakdown by category        |
-| GET    | `/api/v1/reports/expenses-by-category` | Expense breakdown by category       |
-| GET    | `/api/v1/reports/monthly-summary/{year}` | Monthly income/expense/net for year |
-| GET    | `/api/v1/reports/top-spending-categories` | Top spending categories           |
+### Reports & Dashboard
+| Method | Endpoint                               | Description                                         |
+|--------|----------------------------------------|-----------------------------------------------------|
+| GET    | `/api/v1/reports/summary`              | Financial summary (dates optional, defaults to month) |
+| GET    | `/api/v1/reports/dashboard`            | Aggregated dashboard summary (income, expenses, etc.)|
+| GET    | `/api/v1/dashboard`                    | Direct dashboard overview endpoint                  |
+| GET    | `/api/v1/reports/income-by-category`   | Income breakdown by category                        |
+| GET    | `/api/v1/reports/expenses-by-category` | Expense breakdown by category                       |
+| GET    | `/api/v1/reports/monthly-summary/{year}` | Monthly income/expense/net for year (optional year)|
+| GET    | `/api/v1/reports/top-spending-categories` | Top spending categories                          |
 
 ### ML Insights
 | Method | Endpoint                | Description                              |

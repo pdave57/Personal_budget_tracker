@@ -18,18 +18,28 @@ def get_report_service(db: Session = Depends(get_db)) -> ReportService:
 
 @router.get("/summary")
 def get_financial_summary(
-    start_date: date = Query(...),
-    end_date: date = Query(...),
+    start_date: Optional[date] = Query(None, description="Start date (defaults to first day of current month)"),
+    end_date: Optional[date] = Query(None, description="End date (defaults to last day of current month)"),
     service: ReportService = Depends(get_report_service),
     current_user: User = Depends(get_current_active_user),
 ):
     return service.get_financial_summary(current_user.id, start_date, end_date)
 
 
+@router.get("/dashboard")
+def get_dashboard_summary(
+    start_date: Optional[date] = Query(None, description="Start date (defaults to first day of current month)"),
+    end_date: Optional[date] = Query(None, description="End date (defaults to last day of current month)"),
+    service: ReportService = Depends(get_report_service),
+    current_user: User = Depends(get_current_active_user),
+):
+    return service.get_dashboard_summary(current_user.id, start_date, end_date)
+
+
 @router.get("/income-by-category")
 def get_income_by_category(
-    start_date: date = Query(...),
-    end_date: date = Query(...),
+    start_date: Optional[date] = Query(None, description="Start date (defaults to first day of current month)"),
+    end_date: Optional[date] = Query(None, description="End date (defaults to last day of current month)"),
     service: ReportService = Depends(get_report_service),
     current_user: User = Depends(get_current_active_user),
 ):
@@ -38,8 +48,8 @@ def get_income_by_category(
 
 @router.get("/expenses-by-category")
 def get_expenses_by_category(
-    start_date: date = Query(...),
-    end_date: date = Query(...),
+    start_date: Optional[date] = Query(None, description="Start date (defaults to first day of current month)"),
+    end_date: Optional[date] = Query(None, description="End date (defaults to last day of current month)"),
     service: ReportService = Depends(get_report_service),
     current_user: User = Depends(get_current_active_user),
 ):
@@ -47,8 +57,9 @@ def get_expenses_by_category(
 
 
 @router.get("/monthly-summary/{year}")
+@router.get("/monthly-summary")
 def get_monthly_summary(
-    year: int,
+    year: Optional[int] = None,
     service: ReportService = Depends(get_report_service),
     current_user: User = Depends(get_current_active_user),
 ):
@@ -57,8 +68,8 @@ def get_monthly_summary(
 
 @router.get("/top-spending-categories")
 def get_top_spending_categories(
-    start_date: date = Query(...),
-    end_date: date = Query(...),
+    start_date: Optional[date] = Query(None, description="Start date (defaults to first day of current month)"),
+    end_date: Optional[date] = Query(None, description="End date (defaults to last day of current month)"),
     limit: int = Query(5, ge=1, le=20),
     service: ReportService = Depends(get_report_service),
     current_user: User = Depends(get_current_active_user),

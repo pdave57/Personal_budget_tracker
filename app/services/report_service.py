@@ -1,6 +1,7 @@
+import calendar
 from datetime import date
 from decimal import Decimal
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional, Tuple
 from sqlalchemy.orm import Session
 from sqlalchemy import func, and_
 
@@ -14,7 +15,24 @@ class ReportService:
         self.db = db
         self.category_repo = CategoryRepository(db)
 
-    def get_financial_summary(self, user_id: int, start_date: date, end_date: date) -> Dict[str, Any]:
+    @staticmethod
+    def _resolve_date_range(start_date: Optional[date] = None, end_date: Optional[date] = None) -> Tuple[date, date]:
+        today = date.today()
+        if start_date is None:
+            start_date = today.replace(day=1)
+        if end_date is None:
+            _, last_day = calendar.monthrange(today.year, today.month)
+            end_date = today.replace(day=last_day)
+        return start_date, end_date
+
+    def get_financial_summary(
+        self,
+        user_id: int,
+        start_date: Optional[date] = None,
+        end_date: Optional[date] = None,
+    ) -> Dict[str, Any]:
+        start_date, end_date = self._resolve_date_range(start_date, end_date)
+
         total_income = (
             self.db.query(func.sum(Transaction.amount))
             .filter(
@@ -49,11 +67,20 @@ class ReportService:
             "total_income": total_income,
             "total_expenses": total_expenses,
             "net_cash_flow": net_cash_flow,
+            "income": total_income,
+            "expenses": total_expenses,
             "start_date": start_date.isoformat(),
             "end_date": end_date.isoformat(),
         }
 
-    def get_income_by_category(self, user_id: int, start_date: date, end_date: date) -> List[Dict[str, Any]]:
+    def get_income_by_category(
+        self,
+        user_id: int,
+        start_date: Optional[date] = None,
+        end_date: Optional[date] = None,
+    ) -> List[Dict[str, Any]]:
+        start_date, end_date = self._resolve_date_range(start_date, end_date)
+
         results = (
             self.db.query(
                 Category.name,
@@ -83,7 +110,14 @@ class ReportService:
             for name, amount in results
         ]
 
-    def get_expenses_by_category(self, user_id: int, start_date: date, end_date: date) -> List[Dict[str, Any]]:
+    def get_expenses_by_category(
+        self,
+        user_id: int,
+        start_date: Optional[date] = None,
+        end_date: Optional[date] = None,
+    ) -> List[Dict[str, Any]]:
+        start_date, end_date = self._resolve_date_range(start_date, end_date)
+
         results = (
             self.db.query(
                 Category.name,
@@ -113,7 +147,10 @@ class ReportService:
             for name, amount in results
         ]
 
-    def get_monthly_summary(self, user_id: int, year: int) -> List[Dict[str, Any]]:
+    def get_monthly_summary(self, user_id: int, year: Optional[int] = None) -> List[Dict[str, Any]]:
+        if year is None:
+            year = date.today().year
+
         results = (
             self.db.query(
                 func.extract("month", Transaction.transaction_date).label("month"),
@@ -161,10 +198,12 @@ class ReportService:
     def get_top_spending_categories(
         self,
         user_id: int,
-        start_date: date,
-        end_date: date,
+        start_date: Optional[date] = None,
+        end_date: Optional[date] = None,
         limit: int = 5,
     ) -> List[Dict[str, Any]]:
+        start_date, end_date = self._resolve_date_range(start_date, end_date)
+
         results = (
             self.db.query(
                 Category.name,
@@ -189,4 +228,24 @@ class ReportService:
             {"category": name, "amount": amount}
             for name, amount in results
         ]
+
+    def get_dashboard_summary(
+        self,
+        user_id: int,
+        start_date: Optional[date] = None,
+        end_date: Optional[date] = None,
+    ) -> Dict[str, Any]:
+        start_date, end_date = self._resolve_date_range(start_date, end_date)
+        financial_summary = self.get_financial_summary(user_id, start_date, end_date)
+        income_by_cat = self.get_income_by_category(user_id, start_date, end_date)
+        expenses_by_cat = self.get_expenses_by_category(user_id, start_date, end_date)
+        top_spending = self.get_top_spending_categories(user_id, start_date, end_date, limit=5)
+
+        return {
+            **financial_summary,
+            "income_by_category": income_by_cat,
+            "expenses_by_category": expenses_by_cat,
+            "top_spending_categories": top_spending,
+        }
+
 
