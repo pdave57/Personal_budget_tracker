@@ -1,13 +1,17 @@
 from datetime import date, datetime
 from decimal import Decimal
 from typing import Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, condecimal
+
+
+Amount = condecimal(max_digits=12, decimal_places=2, gt=0)
+OptionalAmount = condecimal(max_digits=12, decimal_places=2, gt=0)
 
 
 class TransactionBase(BaseModel):
     category_id: int
     type: str  # "income" or "expense"
-    amount: Decimal = Field(..., gt=0, decimal_places=2)
+    amount: Amount
     description: Optional[str] = None
     transaction_date: date
 
@@ -19,7 +23,7 @@ class TransactionCreate(TransactionBase):
 class TransactionUpdate(BaseModel):
     category_id: Optional[int] = None
     type: Optional[str] = None
-    amount: Optional[Decimal] = Field(default=None, gt=0, decimal_places=2)
+    amount: Optional[Amount] = None
     description: Optional[str] = None
     transaction_date: Optional[date] = None
 

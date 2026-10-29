@@ -29,7 +29,7 @@ def create_transaction(
     current_user: User = Depends(get_current_active_user),
 ):
     try:
-        return service.create(data)
+        return service.create(current_user.id, data)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -55,7 +55,7 @@ def list_transactions(
         min_amount=min_amount,
         max_amount=max_amount,
     )
-    return service.get_filtered(filters, skip, limit)
+    return service.get_filtered(current_user.id, filters, skip, limit)
 
 
 @router.get("/{transaction_id}", response_model=TransactionResponse)
@@ -64,7 +64,7 @@ def get_transaction(
     service: TransactionService = Depends(get_transaction_service),
     current_user: User = Depends(get_current_active_user),
 ):
-    transaction = service.get_by_id(transaction_id)
+    transaction = service.get_by_id(current_user.id, transaction_id)
     if not transaction:
         raise HTTPException(status_code=404, detail="Transaction not found")
     return transaction
@@ -78,7 +78,7 @@ def update_transaction(
     current_user: User = Depends(get_current_active_user),
 ):
     try:
-        transaction = service.update(transaction_id, data)
+        transaction = service.update(current_user.id, transaction_id, data)
         if not transaction:
             raise HTTPException(status_code=404, detail="Transaction not found")
         return transaction
@@ -92,6 +92,6 @@ def delete_transaction(
     service: TransactionService = Depends(get_transaction_service),
     current_user: User = Depends(get_current_active_user),
 ):
-    if not service.delete(transaction_id):
+    if not service.delete(current_user.id, transaction_id):
         raise HTTPException(status_code=404, detail="Transaction not found")
 

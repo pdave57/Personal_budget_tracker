@@ -29,6 +29,7 @@ class MLBudgetService:
     def get_overspending_alerts(
         self,
         db: Session,
+        user_id: int,
         month: int,
         year: int,
     ) -> List[dict]:
@@ -41,7 +42,7 @@ class MLBudgetService:
         # Budgets for the month
         budgets = (
             db.query(Budget)
-            .filter(Budget.month == month, Budget.year == year)
+            .filter(Budget.user_id == user_id, Budget.month == month, Budget.year == year)
             .all()
         )
 
@@ -53,6 +54,7 @@ class MLBudgetService:
             )
             .filter(
                 and_(
+                    Transaction.user_id == user_id,
                     Transaction.type == "expense",
                     Transaction.transaction_date >= start_date,
                     Transaction.transaction_date < end_date,
@@ -117,13 +119,13 @@ class MLBudgetService:
     # ------------------------------------------------------------------ #
     # Recommender
     # ------------------------------------------------------------------ #
-    def get_recommendations(self, db: Session) -> List[dict]:
+    def get_recommendations(self, db: Session, user_id: int) -> List[dict]:
         """Recommend budget adjustments per category using historical spending.
 
         Clusters expense categories by their average monthly spend (KMeans) and
         recommends a budget based on the category's cluster tier and history.
         """
-        transactions = TransactionRepository(db).get_all()
+        transactions = TransactionRepository(db).get_all(user_id)
         expense_tx = [t for t in transactions if t.type == "expense"]
 
         # Average monthly spend per category over available history
@@ -136,7 +138,7 @@ class MLBudgetService:
 
         category_repo = CategoryRepository(db)
         category_names = {
-            c.id: c.name for c in category_repo.get_all()
+            c.id: c.name for c in category_repo.get_all(user_id)
         }
 
         records: List[dict] = []

@@ -22,7 +22,7 @@ def get_recommendations(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ):
-    recommendations = ml_service.get_recommendations(db)
+    recommendations = ml_service.get_recommendations(db, current_user.id)
     return RecommendationResponse(
         recommendations=[BudgetRecommendation(**r) for r in recommendations],
         generated_at=date.today().isoformat(),
@@ -36,7 +36,7 @@ def get_overspending_alerts(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ):
-    result = ml_service.get_overspending_alerts(db, month, year)
+    result = ml_service.get_overspending_alerts(db, current_user.id, month, year)
     return AlertResponse(
         alerts=[OverspendingAlert(**a) for a in result["alerts"]],
         summary=result["summary"],
