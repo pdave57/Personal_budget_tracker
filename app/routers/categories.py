@@ -23,11 +23,11 @@ def create_category(
     service: CategoryRepository = Depends(get_category_service),
     current_user: User = Depends(get_current_active_user),
 ):
-    existing = service.get_by_name(data.name)
+    existing = service.get_by_name(current_user.id, data.name)
     if existing:
         raise HTTPException(status_code=400, detail="Category with this name already exists")
     category = Category(**data.model_dump())
-    category = service.create(category)
+    category = service.create(category, current_user.id)
     return category
 
 
@@ -38,7 +38,7 @@ def list_categories(
     service: CategoryRepository = Depends(get_category_service),
     current_user: User = Depends(get_current_active_user),
 ):
-    return service.get_all(skip, limit)
+    return service.get_all(current_user.id, skip, limit)
 
 
 @router.get("/type/{type}", response_model=List[CategoryResponse])
@@ -49,7 +49,7 @@ def get_categories_by_type(
 ):
     if type not in ["income", "expense"]:
         raise HTTPException(status_code=400, detail="Type must be 'income' or 'expense'")
-    return service.get_by_type(type)
+    return service.get_by_type(current_user.id, type)
 
 
 @router.get("/{category_id}", response_model=CategoryResponse)
@@ -58,7 +58,7 @@ def get_category(
     service: CategoryRepository = Depends(get_category_service),
     current_user: User = Depends(get_current_active_user),
 ):
-    category = service.get_by_id(category_id)
+    category = service.get_by_id(current_user.id, category_id)
     if not category:
         raise HTTPException(status_code=404, detail="Category not found")
     return category
@@ -71,14 +71,14 @@ def update_category(
     service: CategoryRepository = Depends(get_category_service),
     current_user: User = Depends(get_current_active_user),
 ):
-    category = service.get_by_id(category_id)
+    category = service.get_by_id(current_user.id, category_id)
     if not category:
         raise HTTPException(status_code=404, detail="Category not found")
-    
+
     update_data = data.model_dump(exclude_unset=True)
     for key, value in update_data.items():
         setattr(category, key, value)
-    
+
     return service.update(category)
 
 
@@ -88,5 +88,5 @@ def delete_category(
     service: CategoryRepository = Depends(get_category_service),
     current_user: User = Depends(get_current_active_user),
 ):
-    if not service.delete(category_id):
+    if not service.delete(current_user.id, category_id):
         raise HTTPException(status_code=404, detail="Category not found")

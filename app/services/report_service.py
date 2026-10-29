@@ -14,11 +14,12 @@ class ReportService:
         self.db = db
         self.category_repo = CategoryRepository(db)
 
-    def get_financial_summary(self, start_date: date, end_date: date) -> Dict[str, Any]:
+    def get_financial_summary(self, user_id: int, start_date: date, end_date: date) -> Dict[str, Any]:
         total_income = (
             self.db.query(func.sum(Transaction.amount))
             .filter(
                 and_(
+                    Transaction.user_id == user_id,
                     Transaction.type == "income",
                     Transaction.transaction_date >= start_date,
                     Transaction.transaction_date <= end_date,
@@ -32,6 +33,7 @@ class ReportService:
             self.db.query(func.sum(Transaction.amount))
             .filter(
                 and_(
+                    Transaction.user_id == user_id,
                     Transaction.type == "expense",
                     Transaction.transaction_date >= start_date,
                     Transaction.transaction_date <= end_date,
@@ -51,7 +53,7 @@ class ReportService:
             "end_date": end_date.isoformat(),
         }
 
-    def get_income_by_category(self, start_date: date, end_date: date) -> List[Dict[str, Any]]:
+    def get_income_by_category(self, user_id: int, start_date: date, end_date: date) -> List[Dict[str, Any]]:
         results = (
             self.db.query(
                 Category.name,
@@ -60,6 +62,7 @@ class ReportService:
             .join(Transaction, Transaction.category_id == Category.id)
             .filter(
                 and_(
+                    Transaction.user_id == user_id,
                     Transaction.type == "income",
                     Transaction.transaction_date >= start_date,
                     Transaction.transaction_date <= end_date,
@@ -80,7 +83,7 @@ class ReportService:
             for name, amount in results
         ]
 
-    def get_expenses_by_category(self, start_date: date, end_date: date) -> List[Dict[str, Any]]:
+    def get_expenses_by_category(self, user_id: int, start_date: date, end_date: date) -> List[Dict[str, Any]]:
         results = (
             self.db.query(
                 Category.name,
@@ -89,6 +92,7 @@ class ReportService:
             .join(Transaction, Transaction.category_id == Category.id)
             .filter(
                 and_(
+                    Transaction.user_id == user_id,
                     Transaction.type == "expense",
                     Transaction.transaction_date >= start_date,
                     Transaction.transaction_date <= end_date,
@@ -109,14 +113,19 @@ class ReportService:
             for name, amount in results
         ]
 
-    def get_monthly_summary(self, year: int) -> List[Dict[str, Any]]:
+    def get_monthly_summary(self, user_id: int, year: int) -> List[Dict[str, Any]]:
         results = (
             self.db.query(
                 func.extract("month", Transaction.transaction_date).label("month"),
                 Transaction.type,
                 func.sum(Transaction.amount).label("total"),
             )
-            .filter(func.extract("year", Transaction.transaction_date) == year)
+            .filter(
+                and_(
+                    Transaction.user_id == user_id,
+                    func.extract("year", Transaction.transaction_date) == year,
+                )
+            )
             .group_by(
                 func.extract("month", Transaction.transaction_date),
                 Transaction.type,
@@ -151,6 +160,7 @@ class ReportService:
 
     def get_top_spending_categories(
         self,
+        user_id: int,
         start_date: date,
         end_date: date,
         limit: int = 5,
@@ -163,6 +173,7 @@ class ReportService:
             .join(Transaction, Transaction.category_id == Category.id)
             .filter(
                 and_(
+                    Transaction.user_id == user_id,
                     Transaction.type == "expense",
                     Transaction.transaction_date >= start_date,
                     Transaction.transaction_date <= end_date,

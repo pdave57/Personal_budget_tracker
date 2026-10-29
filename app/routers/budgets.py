@@ -13,8 +13,13 @@ from app.models.user import User
 router = APIRouter(prefix="/budgets", tags=["Budgets"])
 
 
-def get_budget_service(db: Session = Depends(get_db)) -> BudgetService:
-    return BudgetService(db)
+def get_budget_service(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+) -> BudgetService:
+    service = BudgetService(db)
+    service.user_id = current_user.id
+    return service
 
 
 @router.post("", response_model=BudgetResponse, status_code=status.HTTP_201_CREATED)

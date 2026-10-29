@@ -23,7 +23,7 @@ def get_financial_summary(
     service: ReportService = Depends(get_report_service),
     current_user: User = Depends(get_current_active_user),
 ):
-    return service.get_financial_summary(start_date, end_date)
+    return service.get_financial_summary(current_user.id, start_date, end_date)
 
 
 @router.get("/income-by-category")
@@ -33,7 +33,7 @@ def get_income_by_category(
     service: ReportService = Depends(get_report_service),
     current_user: User = Depends(get_current_active_user),
 ):
-    return service.get_income_by_category(start_date, end_date)
+    return service.get_income_by_category(current_user.id, start_date, end_date)
 
 
 @router.get("/expenses-by-category")
@@ -43,7 +43,7 @@ def get_expenses_by_category(
     service: ReportService = Depends(get_report_service),
     current_user: User = Depends(get_current_active_user),
 ):
-    return service.get_expenses_by_category(start_date, end_date)
+    return service.get_expenses_by_category(current_user.id, start_date, end_date)
 
 
 @router.get("/monthly-summary/{year}")
@@ -52,7 +52,7 @@ def get_monthly_summary(
     service: ReportService = Depends(get_report_service),
     current_user: User = Depends(get_current_active_user),
 ):
-    return service.get_monthly_summary(year)
+    return service.get_monthly_summary(current_user.id, year)
 
 
 @router.get("/top-spending-categories")
@@ -63,4 +63,4 @@ def get_top_spending_categories(
     service: ReportService = Depends(get_report_service),
     current_user: User = Depends(get_current_active_user),
 ):
-    return service.get_top_spending_categories(start_date, end_date, limit)
+    return service.get_top_spending_categories(current_user.id, start_date, end_date, limit)

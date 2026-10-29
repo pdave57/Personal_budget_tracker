@@ -15,9 +15,12 @@ class BudgetService:
     def __init__(self, db: Session):
         self.db = db
         self.category_repo = CategoryRepository(db)
+        self.user_id: Optional[int] = None
 
     def _validate_category(self, category_id: int) -> Category:
-        category = self.category_repo.get_by_id(category_id)
+        if self.user_id is None:
+            raise ValueError("User context is required")
+        category = self.category_repo.get_by_id(self.user_id, category_id)
         if not category:
             raise ValueError(f"Category with id {category_id} not found")
         if category.type != "expense":
@@ -26,11 +29,12 @@ class BudgetService:
 
     def create(self, data: BudgetCreate) -> Budget:
         self._validate_category(data.category_id)
-        
+
         existing = (
             self.db.query(Budget)
             .filter(
                 and_(
+                    Budget.user_id == self.user_id,
                     Budget.category_id == data.category_id,
                     Budget.month == data.month,
                     Budget.year == data.year,
@@ -42,24 +46,33 @@ class BudgetService:
             raise ValueError("Budget for this category and month/year already exists")
 
         budget = Budget(**data.model_dump())
+        budget.user_id = self.user_id
         self.db.add(budget)
         self.db.commit()
         self.db.refresh(budget)
         return budget
 
     def get_by_id(self, budget_id: int) -> Optional[Budget]:
-        return self.db.query(Budget).filter(Budget.id == budget_id).first()
+        if self.user_id is None:
+            return None
+        return self.db.query(Budget).filter(Budget.user_id == self.user_id, Budget.id == budget_id).first()
 
     def get_all(self, skip: int = 0, limit: int = 100) -> List[Budget]:
-        return self.db.query(Budget).offset(skip).limit(limit).all()
+        if self.user_id is None:
+            return []
+        return self.db.query(Budget).filter(Budget.user_id == self.user_id).offset(skip).limit(limit).all()
 
     def get_by_category(self, category_id: int) -> List[Budget]:
-        return self.db.query(Budget).filter(Budget.category_id == category_id).all()
+        if self.user_id is None:
+            return []
+        return self.db.query(Budget).filter(Budget.user_id == self.user_id, Budget.category_id == category_id).all()
 
     def get_by_month_year(self, month: int, year: int) -> List[Budget]:
+        if self.user_id is None:
+            return []
         return (
             self.db.query(Budget)
-            .filter(and_(Budget.month == month, Budget.year == year))
+            .filter(and_(Budget.user_id == self.user_id, Budget.month == month, Budget.year == year))
             .all()
         )
 
@@ -94,10 +107,22 @@ class BudgetService:
         month: int,
         year: int,
     ) -> dict:
+        if self.user_id is None:
+            return {
+                "budget_id": None,
+                "category_id": category_id,
+                "budget_amount": None,
+                "spent_amount": Decimal("0"),
+                "remaining": Decimal("0"),
+                "percentage_used": 0,
+                "exceeded": False,
+            }
+
         budget = (
             self.db.query(Budget)
             .filter(
                 and_(
+                    Budget.user_id == self.user_id,
                     Budget.category_id == category_id,
                     Budget.month == month,
                     Budget.year == year,
@@ -128,6 +153,7 @@ class BudgetService:
             self.db.query(Transaction)
             .filter(
                 and_(
+                    Transaction.user_id == self.user_id,
                     Transaction.category_id == category_id,
                     Transaction.transaction_date >= start_date,
                     Transaction.transaction_date < end_date,
