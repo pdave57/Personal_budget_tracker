@@ -26,7 +26,7 @@ A FastAPI-based REST API for tracking personal income, expenses, budgets, and fi
 ```
 ┌──────────────────────────────────────────────────────────────┐
 │                        CLIENT                                │
-│              (Browser / Postman / Frontend)                   │
+│              (Browser / swagger / Frontend)                   │
 └──────────────────────┬───────────────────────────────────────┘
                        │  HTTP Requests
                        ▼
@@ -233,13 +233,40 @@ pip install -r requirements.txt
 
 ### 2. Environment Variables
 
-Create an `app/.env` file:
+Copy the provided `.env.example` to `.env`:
+```bash
+cp .env.example .env
+```
+
+#### Development Environment (SQLite)
+In development, SQLite is marked as the default database:
 ```env
+ENVIRONMENT=development
 DATABASE_URL=sqlite:///./budget_tracker.db
 DEBUG=True
 SECRET_KEY=your_secret_key_here
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
+```
+
+#### Production Environment (PostgreSQL)
+In production, set `ENVIRONMENT=production` to switch to PostgreSQL with connection pooling:
+```env
+ENVIRONMENT=production
+DEBUG=False
+SECRET_KEY=your_production_secret_key_here
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+
+# Option 1: Direct PostgreSQL URL
+DATABASE_URL=postgresql+psycopg://username:password@db-host:5432/budget_tracker
+
+# Option 2: Component variables
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=your_password
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_DB=budget_tracker
 ```
 
 ### 3. Run the Application
