@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     db_echo: bool = False
 
     # Security
-    secret_key: str = "vPTCnlf_1ICUPXSOsuUmFlldYXanuCzMw9pLsHJAHtK-ynGK4-oDs037f9xUkGeP4WmXfBXqOL7AWKwyq105Cw"
+    secret_key: str 
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
 
