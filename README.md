@@ -228,7 +228,7 @@ personal_budget_tracker/
 ```bash
 python3 -m venv venv
 source venv/bin/activate
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
 ### 2. Environment Variables
@@ -272,7 +272,7 @@ POSTGRES_DB=budget_tracker
 ### 3. Run the Application
 
 ```bash
-uvicorn app.main:app --reload
+python -m uvicorn app.main:app --reload
 ```
 
 Interactive API documentation will be available at:
