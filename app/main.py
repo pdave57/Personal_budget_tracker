@@ -1,6 +1,7 @@
 from datetime import date
 from typing import Optional
 from fastapi import FastAPI, Depends, Query
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
 from app.database import init_db
@@ -24,6 +25,21 @@ app = FastAPI(
     description="API for tracking personal income, expenses, and budgets",
     version="1.0.0",
     debug=settings.debug,
+)
+
+# CORS configuration — allow the frontend origin(s)
+allowed_origins = [
+    origin.strip()
+    for origin in settings.cors_origins.split(",")
+    if origin.strip()
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allowed_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 

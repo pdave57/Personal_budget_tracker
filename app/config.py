@@ -28,6 +28,9 @@ class Settings(BaseSettings):
     db_pool_pre_ping: bool = True
     db_echo: bool = False
 
+    # CORS
+    cors_origins: str = "https://pbt-frontend.onrender.com"
+
     # Security
     secret_key: str 
     algorithm: str = "HS256"
