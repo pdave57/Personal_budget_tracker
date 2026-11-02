@@ -31,6 +31,10 @@ class Settings(BaseSettings):
     # CORS
     cors_origins: str = "https://pbt-frontend.onrender.com"
 
+    # Keep-alive self-ping (set KEEP_ALIVE_URL in production to prevent cold starts)
+    keep_alive_url: str = ""
+    keep_alive_interval: int = 840  # 14 minutes in seconds
+
     # Security
     secret_key: str 
     algorithm: str = "HS256"

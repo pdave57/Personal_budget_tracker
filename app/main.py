@@ -1,5 +1,10 @@
+import asyncio
+import logging
+from contextlib import asynccontextmanager
 from datetime import date
 from typing import Optional
+
+import httpx
 from fastapi import FastAPI, Depends, Query
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -18,13 +23,54 @@ from app.routers import (
 from app.routers.reports import get_report_service
 from app.services.report_service import ReportService
 
+logger = logging.getLogger(__name__)
+
 settings = get_settings()
+
+
+async def _keep_alive_loop(url: str, interval: int) -> None:
+    """Periodically ping the given URL to prevent Render free-tier cold starts."""
+    logger.info("Keep-alive task started — pinging %s every %d seconds", url, interval)
+    async with httpx.AsyncClient(timeout=30) as client:
+        while True:
+            await asyncio.sleep(interval)
+            try:
+                response = await client.get(url)
+                logger.info(
+                    "Keep-alive ping to %s — status %d", url, response.status_code
+                )
+            except Exception as exc:
+                logger.warning("Keep-alive ping to %s failed: %s", url, exc)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # ── Startup ──
+    init_db()
+
+    keep_alive_task = None
+    if settings.keep_alive_url:
+        keep_alive_task = asyncio.create_task(
+            _keep_alive_loop(settings.keep_alive_url, settings.keep_alive_interval)
+        )
+
+    yield
+
+    # ── Shutdown ──
+    if keep_alive_task is not None:
+        keep_alive_task.cancel()
+        try:
+            await keep_alive_task
+        except asyncio.CancelledError:
+            logger.info("Keep-alive task cancelled")
+
 
 app = FastAPI(
     title="Personal Budget Tracker API",
     description="API for tracking personal income, expenses, and budgets",
     version="1.0.0",
     debug=settings.debug,
+    lifespan=lifespan,
 )
 
 # CORS configuration — allow the frontend origin(s)
@@ -41,11 +87,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-@app.on_event("startup")
-def on_startup():
-    init_db()
 
 
 app.include_router(auth_router, prefix="/api/v1")
