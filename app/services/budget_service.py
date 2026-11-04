@@ -16,22 +16,23 @@ class BudgetService:
         self.db = db
         self.category_repo = CategoryRepository(db)
 
-    def _validate_category(self, category_id: int) -> Category:
-        category = self.category_repo.get_by_id(category_id)
+    def _validate_category(self, user_id: int, category_id: int) -> Category:
+        category = self.category_repo.get_by_id(user_id, category_id)
         if not category:
             raise ValueError(f"Category with id {category_id} not found")
         if category.type != "expense":
             raise ValueError(f"Category {category.name} is not an expense category")
         return category
 
-    def create(self, data: BudgetCreate) -> Budget:
-        self._validate_category(data.category_id)
-        
+    def create(self, user_id: int, data: BudgetCreate) -> Budget:
+        self._validate_category(user_id, data.category_id)
+
         existing = (
             self.db.query(Budget)
             .filter(
                 and_(
                     Budget.category_id == data.category_id,
+                    Budget.user_id == user_id,
                     Budget.month == data.month,
                     Budget.year == data.year,
                 )
@@ -41,7 +42,7 @@ class BudgetService:
         if existing:
             raise ValueError("Budget for this category and month/year already exists")
 
-        budget = Budget(**data.model_dump())
+        budget = Budget(**data.model_dump(), user_id=user_id)
         self.db.add(budget)
         self.db.commit()
         self.db.refresh(budget)
@@ -71,7 +72,7 @@ class BudgetService:
         update_data = data.model_dump(exclude_unset=True)
 
         if "category_id" in update_data:
-            self._validate_category(update_data["category_id"])
+            self._validate_category(budget.user_id, update_data["category_id"])
 
         for key, value in update_data.items():
             setattr(budget, key, value)

@@ -24,7 +24,7 @@ def create_budget(
     current_user: User = Depends(get_current_active_user),
 ):
     try:
-        return service.create(data)
+        return service.create(current_user.id, data)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
