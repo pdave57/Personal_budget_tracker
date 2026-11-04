@@ -171,6 +171,9 @@ personal_budget_tracker/
 |--------|------------------------|----------------------|
 | POST   | `/api/v1/auth/register`| Register a new user  |
 | POST   | `/api/v1/auth/login`   | Login, receive JWT   |
+| POST   | `/api/v1/auth/token`   | OAuth2 form login used by Swagger Authorize |
+
+For Swagger Authorize, enter the account email in the `username` field and its password.
 
 ### Categories
 | Method | Endpoint                         | Description                  |

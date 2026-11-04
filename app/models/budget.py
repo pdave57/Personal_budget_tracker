@@ -12,7 +12,7 @@ class Budget(Base):
     amount = Column(Numeric(14, 2), nullable=False)
     month = Column(Integer, nullable=False)
     year = Column(Integer, nullable=False)
-
+    
     category = relationship("Category", back_populates="budgets")
     user = relationship("User", back_populates="budgets")
 

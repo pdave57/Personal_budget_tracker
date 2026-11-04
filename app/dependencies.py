@@ -6,7 +6,7 @@ from app.database import get_db
 from app.models.user import User
 from app.services.auth_service import decode_token, get_user_by_email
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token")
 
 
 def get_current_user(
@@ -33,4 +33,3 @@ def get_current_active_user(
     if not current_user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
-
